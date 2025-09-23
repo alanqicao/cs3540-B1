@@ -30,8 +30,8 @@ public class IdearTwo extends PApplet {
 	
 	// Flash settings 
 	float flashHz = 7.0f;    // pulses per second
-	int flashMin = 80;       // minimum alpha/brightness
-	int flashMax = 255;      // maximum alpha/brightness
+	int flashMin = 80;       // minimum brightness
+	int flashMax = 255;      // maximum brightness
 
 	int numRepeats = 1; // sets the number of times each button repeats in the test
 	
@@ -115,10 +115,10 @@ public class IdearTwo extends PApplet {
 			drawButton(i); // draw button
 		
 		Rectangle selBounds = getButtonLocation(toIndex(selRow, selCol));
-		// purple-ish ring with some transparency; tweak color to taste
+		// red with some transparency
 		drawSelectorRing(selBounds);
 		
-		//cursor red
+		//removed cursor red
 		//fill(255, 0, 0, 200); // set fill color to translucent red
 		//ellipse(mouseX, mouseY, 20, 20); // draw user cursor as a circle with a diameter of 20
 
@@ -174,7 +174,7 @@ public class IdearTwo extends PApplet {
 	public void drawButton(int i) {
 		  Rectangle bounds = getButtonLocation(i);
 
-		  int targetId = trials.get(trialNum);                 // current lit button id
+		  int targetId = trials.get(trialNum); // current lit button id
 		  
 		// Compute next id if it exists; otherwise -1
 		  int nextId = (trialNum + 1 < trials.size()) ? trials.get(trialNum + 1) : -1;
@@ -182,7 +182,7 @@ public class IdearTwo extends PApplet {
 		  Rectangle targetBounds = getButtonLocation(targetId);
 
 		  if (i == targetId) {
-			    // Flashing cyan by modulating alpha
+			    // Flashing
 			    int a = flashLevel();
 			    fill(0, 255, 255, a);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -193,7 +193,7 @@ public class IdearTwo extends PApplet {
 
 		  // If this is the NEXT target, overlay a purple bar
 		  if (i == nextId) {
-		    // draw a bar to indicate "next"
+		    // draw three bar to indicate "next"
 			  drawTripleBarInCell(bounds, 180, 0, 255, 230); // purple;
 		  }
 
@@ -229,6 +229,7 @@ public class IdearTwo extends PApplet {
 		// https://processing.org/reference/mouseMoved_.html
 	}
 	
+	// !!! Possible remove this because Processing does not support left and right
 	public void mouseWheel(MouseEvent event) {
 		  float delta = event.getCount(); // >0 scroll down, <0 scroll up
 		  int dir = (delta > 0) ? +1 : -1;
