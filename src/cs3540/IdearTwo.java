@@ -116,7 +116,7 @@ public class IdearTwo extends PApplet {
 		
 		Rectangle selBounds = getButtonLocation(toIndex(selRow, selCol));
 		// purple-ish ring with some transparency; tweak color to taste
-		drawSelectorRing(selBounds, 160, 0, 255, 180);
+		drawSelectorRing(selBounds);
 		
 		//cursor red
 		//fill(255, 0, 0, 200); // set fill color to translucent red
@@ -194,7 +194,7 @@ public class IdearTwo extends PApplet {
 		  // If this is the NEXT target, overlay a purple bar
 		  if (i == nextId) {
 		    // draw a bar to indicate "next"
-		    drawBarInCell(bounds, 180, 0, 255, 230); // purple bar
+			  drawTripleBarInCell(bounds, 180, 0, 255, 230); // purple;
 		  }
 
 		  // Draw arrows on non-current cells pointing toward the current target
@@ -287,22 +287,33 @@ public class IdearTwo extends PApplet {
 	  popStyle();
 	}  
 	
-	/** Draw a horizontal bar centered inside the cell. */
-	private void drawBarInCell(Rectangle cell, int r, int g, int b, int a) {
+	/** Draw three horizontal bars centered inside the cell. */
+	private void drawTripleBarInCell(Rectangle cell, int r, int g, int b, int a) {
 	  float cx = centerX(cell);
 	  float cy = centerY(cell);
 
-	  float w = cell.width * 0.75f;   // bar width as % of cell
-	  float h = cell.height * 0.35f;  // bar height as % of cell
-	  float x = cx - w * 0.5f;
-	  float y = cy - h * 0.5f;
+	  // Size/spacing as a fraction of the cell; tweak to taste
+	  float totalW   = cell.width * 0.78f;   // width of each bar
+	  float barH     = cell.height * 0.14f;  // height of each bar
+	  float gap      = cell.height * 0.10f;  // vertical gap between bars
+	  float cornerR  = barH * 0.45f;         // rounded corners
+
+	  // Y positions for top/mid/bot, centered around cy
+	  float midY = cy - barH * 0.5f;
+	  float topY = midY - (barH + gap);
+	  float botY = midY + (barH + gap);
+
+	  float leftX = cx - totalW * 0.5f;
 
 	  pushStyle();
 	  noStroke();
 	  fill(r, g, b, a);
-	  rect(x, y, w, h, h * 0.25f); // rounded bar looks nice
+	  rect(leftX, topY, totalW, barH, cornerR);
+	  rect(leftX, midY, totalW, barH, cornerR);
+	  rect(leftX, botY, totalW, barH, cornerR);
 	  popStyle();
 	}
+
 	
 	/** Returns a pulsing value between flashMin and flashMax based on time. */
 	private int flashLevel() {
@@ -316,23 +327,26 @@ public class IdearTwo extends PApplet {
 		  selRow = constrain(selRow + dRow, 0, gridRows - 1);
 		}
 
-		// Draw a colored "padding ring" inside the selected cell
-		private void drawSelectorRing(Rectangle cell, int r, int g, int b, int a) {
-		  // ring thickness is relative to cell size
-		  float ring = cell.width * 0.15f;
+	
+	// Draw a colored "padding ring" inside the selected cell	
+	private void drawSelectorRing(Rectangle cell) {
+	  float pad = cell.width * 0.15f;      // how far the ring is inset
+	  float ring = cell.width * 0.10f;     // ring thickness
 
-		  pushStyle();
-		  noStroke();
-		  // 1) paint full cell with ring color (overlay)
-		  fill(r, g, b, a);
-		  rect(cell.x, cell.y, cell.width, cell.height);
+	  pushStyle();
+	  noFill();
+	  stroke(255, 0, 0, 220);              // red ring, slightly transparent
+	  strokeWeight(ring);
 
-		  // 2) carve the inner area back to the original cell color by drawing
-		  //    a smaller rect on top using the base fill (light gray) so the ring remains
-		  fill(200); // base non-target fill; if your cells vary, pass this color as a param
-		  rect(cell.x + ring, cell.y + ring, cell.width - 2*ring, cell.height - 2*ring, ring*0.4f);
-		  popStyle();
-		}
+	  // draw an inset rectangle so the ring sits inside the cell
+	  float x = cell.x + pad;
+	  float y = cell.y + pad;
+	  float w = cell.width  - 2 * pad;
+	  float h = cell.height - 2 * pad;
+	  rect(x, y, w, h, pad * 0.4f);        // rounded corners optional
+	  popStyle();
+	}
+
 
 		// Index helpers
 		private int toIndex(int row, int col) { return row * 4 + col; }
