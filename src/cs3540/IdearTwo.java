@@ -139,18 +139,17 @@ public class IdearTwo extends PApplet {
 			System.out.println("we're all done!");
 		}
 
-		Rectangle bounds = getButtonLocation(trials.get(trialNum));
+		int targetId = trials.get(trialNum);
+	    int selectedId = toIndex(selRow, selCol);   // <— use selector position
 
-		// check to see if cursor was inside button
-		if ((mouseX > bounds.x && mouseX < bounds.x + bounds.width)
-				&& (mouseY > bounds.y && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
-		{
-			System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
-			hits++;
-		} else {
-			System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
-			misses++;
-		}
+	    
+		 if (selectedId == targetId) {
+			    System.out.println("HIT! " + trialNum + " " + (millis() - startTime));
+			    hits++;
+			  } else {
+			    System.out.println("MISSED! " + trialNum + " " + (millis() - startTime));
+			    misses++;
+			  }
 
 		trialNum++; // Increment trial number
 
