@@ -31,6 +31,16 @@ public class BakeOff1 extends PApplet {
 	float flashHz = 7.0f;    // pulses per second
 	int flashMin = 80;       // minimum alpha/brightness
 	int flashMax = 255;      // maximum alpha/brightness
+	
+	// --- Tail->tip sweep settings ---
+	float baseThick     = 3f;     // thickness before the front passes
+	float maxThick      = 12f;    // thickness after the front passes
+	float sweepSeconds  = 0.2f;   // time for front to go tail -> tip
+	float frontFeather  = 0.25f;  // 0..1 of shaft length that is the soft ramp width
+	int   arrowGrayFill = 60;     // color
+
+
+
 
 	int numRepeats = 1; // sets the number of times each button repeats in the test
 
@@ -177,7 +187,7 @@ public class BakeOff1 extends PApplet {
 		  // If this is the NEXT target, overlay a purple bar
 		  if (i == nextId) {
 		    // draw a bar to indicate "next"
-		    drawBarInCell(bounds, 180, 0, 255, 230); // purple bar
+		   // drawBarInCell(bounds, 180, 0, 255, 230); // purple bar
 		  }
 
 		  // Draw arrows on non-current cells pointing toward the current target
@@ -185,7 +195,10 @@ public class BakeOff1 extends PApplet {
 		    float dx = centerX(targetBounds) - centerX(bounds);
 		    float dy = centerY(targetBounds) - centerY(bounds);
 		    float angle = atan2(dy, dx);
-		    drawArrowInCell(bounds, angle);
+		 // in drawButton(int i)
+		    drawSweepArrowInCell(bounds, angle);
+
+
 		  }
 	}
 
@@ -209,56 +222,10 @@ public class BakeOff1 extends PApplet {
 	private float centerX(Rectangle r) { return r.x + r.width  * 0.5f; }
 	private float centerY(Rectangle r) { return r.y + r.height * 0.5f; }
 
-	/** Draws a small arrow inside the cell, pointing along 'angle' (radians). */
-	private void drawArrowInCell(Rectangle cell, float angle) {
-	  float cx = centerX(cell);
-	  float cy = centerY(cell);
-	
-	  // sizes relative to the cell so it scales with your buttonSize
-	  float halfShaft = cell.width * 0.18f;   // half length of the shaft line
-	  float headLen   = cell.width * 0.12f;   // length of the arrow head
-	  float headHalfH = cell.height * 0.08f;  // half height of arrow head
-	  
-	  pushStyle();
-	  pushMatrix();
-	  translate(cx, cy);
-	  rotate(angle);
 
-	  // shaft
-	  stroke(60);
-	  strokeWeight(3);
-	  line(-halfShaft, 0, halfShaft, 0);
-
-	  // head (filled triangle)
-	  noStroke();
-	  fill(60);
-	  // triangle tip at +halfShaft, base slightly back
-	  triangle(
-	      halfShaft, 0,
-	      halfShaft - headLen, -headHalfH,
-	      halfShaft - headLen,  headHalfH
-	  );
-
-	  popMatrix();
-	  popStyle();
-	}  
 	
 	/** Draw a horizontal bar centered inside the cell. */
-	private void drawBarInCell(Rectangle cell, int r, int g, int b, int a) {
-	  float cx = centerX(cell);
-	  float cy = centerY(cell);
 
-	  float w = cell.width * 0.75f;   // bar width as % of cell
-	  float h = cell.height * 0.35f;  // bar height as % of cell
-	  float x = cx - w * 0.5f;
-	  float y = cy - h * 0.5f;
-
-	  pushStyle();
-	  noStroke();
-	  fill(r, g, b, a);
-	  rect(x, y, w, h, h * 0.25f); // rounded bar looks nice
-	  popStyle();
-	}
 	
 	/** Returns a pulsing value between flashMin and flashMax based on time. */
 	private int flashLevel() {
@@ -266,4 +233,78 @@ public class BakeOff1 extends PApplet {
 	  float phase = (sin(TWO_PI * flashHz * t) + 1f) * 0.5f;  // 0..1
 	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
 	}
+
+	/** Arrow with a straight centerline and an animated thickness front sweeping tail -> tip. */
+	private void drawSweepArrowInCell(Rectangle cell, float angle) {
+	  float cx = centerX(cell);
+	  float cy = centerY(cell);
+
+	  // geometry proportions (same vibe as your straight arrow)
+	  float halfShaft = cell.width * 0.18f;            // half length of shaft
+	  float headLen   = cell.width * 0.09f;            // arrow head length
+	  float tailX     = -halfShaft;
+	  float tipBaseX  =  halfShaft - headLen;          // where shaft ends, head begins
+
+	  // progress of the sweeping front 0..1 (loops)
+	  float t    = millis() / 1000.0f;
+	  float prog = (sweepSeconds <= 0f) ? 1f : (t / sweepSeconds) % 1f;
+
+	  // soft front width (clamped)
+	  float ramp = constrain(frontFeather, 0.05f, 0.9f);
+
+	  // smoothstep helper
+	  java.util.function.Function<Float, Float> smooth = (x) -> {
+	    float u = constrain(x, 0, 1);
+	    return u*u*(3f - 2f*u);
+	  };
+
+	  pushStyle();
+	  pushMatrix();
+	  translate(cx, cy);
+	  rotate(angle);
+	  noStroke();
+	  fill(arrowGrayFill);
+
+	  // Build centerline
+	  final int S = 48; // smoother edge
+	  float[] xs    = new float[S+1];
+	  float[] halfT = new float[S+1];
+
+	  for (int i = 0; i <= S; i++) {
+	    float u = i / (float)S;                 // 0..1 along shaft
+	    float x = lerp(tailX, tipBaseX, u);
+	    xs[i] = x;
+
+	    // thickness at this point: base .. max with a soft front at prog
+	    // Front affects the span [prog - ramp, prog]; before = base, after = max
+	    float s = smooth.apply((u - (prog - ramp)) / ramp);
+	    float thick = lerp(baseThick, maxThick, s);
+	    halfT[i] = thick * 0.2f;
+	  }
+
+	  // Draw the shaft as a clean QUAD_STRIP (no self-intersections, no wobble)
+	  beginShape(QUAD_STRIP);
+	  for (int i = 0; i <= S; i++) {
+	    vertex(xs[i], -halfT[i]); // upper edge
+	    vertex(xs[i],  halfT[i]); // lower edge
+	  }
+	  endShape();
+
+	  // Arrow head: match the current shaft thickness at the tip base
+	  float tipHalf = halfT[S];
+	  float headHalfH = max(tipHalf * 0.9f, cell.height * 0.06f);
+
+	  triangle(
+	    halfShaft, 0,                         // tip point
+	    tipBaseX, -tipHalf - headHalfH,       // base upper
+	    tipBaseX,  tipHalf + headHalfH        // base lower
+	  );
+
+	  popMatrix();
+	  popStyle();
+	}
+
+
+
+
 }
