@@ -234,75 +234,75 @@ public class BakeOff1 extends PApplet {
 	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
 	}
 
-	/** Arrow with a straight centerline and an animated thickness front sweeping tail -> tip. */
 	private void drawSweepArrowInCell(Rectangle cell, float angle) {
-	  float cx = centerX(cell);
-	  float cy = centerY(cell);
+		  float cx = centerX(cell);
+		  float cy = centerY(cell);
 
-	  // geometry proportions (same vibe as your straight arrow)
-	  float halfShaft = cell.width * 0.18f;            // half length of shaft
-	  float headLen   = cell.width * 0.09f;            // arrow head length
-	  float tailX     = -halfShaft;
-	  float tipBaseX  =  halfShaft - headLen;          // where shaft ends, head begins
+		  float halfShaft = cell.width * 0.19f;
+		  float headLen   = cell.width * 0.07f;
+		  float tailX     = -halfShaft;
+		  float tipBaseX  =  halfShaft - headLen;
 
-	  // progress of the sweeping front 0..1 (loops)
-	  float t    = millis() / 1000.0f;
-	  float prog = (sweepSeconds <= 0f) ? 1f : (t / sweepSeconds) % 1f;
+		  float t    = millis() / 1000.0f;
+		  float prog = (sweepSeconds <= 0f) ? 1f : (t / sweepSeconds) % 1f;
+		  float ramp = constrain(frontFeather, 0.05f, 0.9f);
 
-	  // soft front width (clamped)
-	  float ramp = constrain(frontFeather, 0.05f, 0.9f);
+		  java.util.function.Function<Float, Float> smooth = (x) -> {
+		    float u = constrain(x, 0, 1);
+		    return u*u*(3f - 2f*u);
+		  };
 
-	  // smoothstep helper
-	  java.util.function.Function<Float, Float> smooth = (x) -> {
-	    float u = constrain(x, 0, 1);
-	    return u*u*(3f - 2f*u);
-	  };
+		  pushStyle();
+		  pushMatrix();
+		  translate(cx, cy);
+		  rotate(angle);
 
-	  pushStyle();
-	  pushMatrix();
-	  translate(cx, cy);
-	  rotate(angle);
-	  noStroke();
-	  fill(arrowGrayFill);
+		  colorMode(HSB, 360, 100, 100); // switch to hue-saturation-brightness
 
-	  // Build centerline
-	  final int S = 48; // smoother edge
-	  float[] xs    = new float[S+1];
-	  float[] halfT = new float[S+1];
+		  int S = 48;
+		  float[] xs    = new float[S+1];
+		  float[] halfT = new float[S+1];
 
-	  for (int i = 0; i <= S; i++) {
-	    float u = i / (float)S;                 // 0..1 along shaft
-	    float x = lerp(tailX, tipBaseX, u);
-	    xs[i] = x;
+		  for (int i = 0; i <= S; i++) {
+		    float u = i / (float)S;
+		    float x = lerp(tailX, tipBaseX, u);
+		    xs[i] = x;
 
-	    // thickness at this point: base .. max with a soft front at prog
-	    // Front affects the span [prog - ramp, prog]; before = base, after = max
-	    float s = smooth.apply((u - (prog - ramp)) / ramp);
-	    float thick = lerp(baseThick, maxThick, s);
-	    halfT[i] = thick * 0.2f;
-	  }
+		    float s = smooth.apply((u - (prog - ramp)) / ramp);
+		    float thick = lerp(baseThick, maxThick, s);
+		    halfT[i] = thick * 0.5f;
+		  }
 
-	  // Draw the shaft as a clean QUAD_STRIP (no self-intersections, no wobble)
-	  beginShape(QUAD_STRIP);
-	  for (int i = 0; i <= S; i++) {
-	    vertex(xs[i], -halfT[i]); // upper edge
-	    vertex(xs[i],  halfT[i]); // lower edge
-	  }
-	  endShape();
+		  // Draw shaft with rainbow: loop quads, each colored by hue
+		  for (int i = 0; i < S; i++) {
+		    float u = i / (float)S;
+		    float hue = lerp(0, 360, u); // sweep through rainbow
+		    fill(hue, 100, 100);
 
-	  // Arrow head: match the current shaft thickness at the tip base
-	  float tipHalf = halfT[S];
-	  float headHalfH = max(tipHalf * 0.9f, cell.height * 0.06f);
+		    beginShape();
+		    vertex(xs[i],   -halfT[i]);
+		    vertex(xs[i],    halfT[i]);
+		    vertex(xs[i+1],  halfT[i+1]);
+		    vertex(xs[i+1], -halfT[i+1]);
+		    endShape(CLOSE);
+		  }
 
-	  triangle(
-	    halfShaft, 0,                         // tip point
-	    tipBaseX, -tipHalf - headHalfH,       // base upper
-	    tipBaseX,  tipHalf + headHalfH        // base lower
-	  );
+		  // Arrow head matches the tip hue
+		  float tipHue = 360; // or reuse hue from last segment
+		  fill(tipHue, 100, 100);
+		  float tipHalf = halfT[S];
+		  float headHalfH = max(tipHalf * 0.9f, cell.height * 0.06f);
+		  triangle(
+		    halfShaft, 0,
+		    tipBaseX, -tipHalf - headHalfH,
+		    tipBaseX,  tipHalf + headHalfH
+		  );
 
-	  popMatrix();
-	  popStyle();
-	}
+		  colorMode(RGB, 255); // reset so rest of sketch unaffected
+		  popMatrix();
+		  popStyle();
+		}
+
 
 
 
