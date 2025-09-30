@@ -165,7 +165,7 @@ public class BakeOff1 extends PApplet {
 			    int a = flashLevel();
 			    fill(255, 0, 0, a);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
-			    drawInnerPulse(bounds);
+			    drawSweepBand(bounds);
 			  } else {
 			    fill(200);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -248,20 +248,29 @@ public class BakeOff1 extends PApplet {
 	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
 	}
 	
-	private void drawInnerPulse(Rectangle r) {
+	private void drawSweepBand(Rectangle r) {
 		  pushStyle();
 		  noStroke();
 
-		  float t = millis()/1000f;
-		  float phase = (sin(TWO_PI * 1.2f * t) + 1f) * 0.5f;     // 0..1
+		  // time → position 0..1 across the cell (left→right)
+		  float period = 0.9f;
+		  float u = ( (millis()/1000f) % period ) / period;
 
-		  // 4 inset layers, biggest alpha on innermost
-		  for (int k = 0; k < 4; k++) {
-		    float inset = map(k, 0, 3, 2, 10);                    // px inset stays inside
-		    int   a     = (int) (map(k, 0, 3, 110, 20) * (0.6f+0.4f*phase));
-		    fill(0, 255, 255, a);                                  // cyan-ish
-		    rect(r.x + inset, r.y + inset,
-		         r.width - 2*inset, r.height - 2*inset);
+		  // band width as fraction of cell width, and a soft alpha
+		  float fracW = 0.32f;                     // ~1/3 of cell
+		  float bandW = r.width * fracW;
+		  float cx = r.x + u * r.width;            // center x of band
+		  float x0 = constrain(cx - bandW*0.5f, r.x, r.x + r.width);
+		  float x1 = constrain(cx + bandW*0.5f, r.x, r.x + r.width);
+
+		  // three passes to fake a soft edge, all fully inside the rect
+		  for (int i = 0; i < 3; i++) {
+		    float shrink = i * 3;                   // small inset per pass
+		    int a = (i==0) ? 120 : (i==1 ? 70 : 35);
+		    fill(0, 255, 180, a);
+		    rect(x0 + shrink, r.y + 2 + shrink,
+		         max(0, (x1 - x0) - 2*shrink),
+		         r.height - 4 - 2*shrink);
 		  }
 		  popStyle();
 		}
