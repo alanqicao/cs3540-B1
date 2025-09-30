@@ -142,6 +142,24 @@ public class BakeOff1 extends PApplet {
 		// just the GUI, so the mouse may move outside of the GUI.
 		// robot.mouseMove(width/2, (height)/2); //on click, move cursor to roughly
 		// center of window!
+		/*if (robot != null) {
+		    try {
+		        // Get the window that contains the Processing canvas
+		        java.awt.Component comp = (java.awt.Component) surface.getNative();
+		        java.awt.Window window = javax.swing.SwingUtilities.getWindowAncestor(comp);
+
+		        if (window != null) {
+		            java.awt.Point winPos = window.getLocationOnScreen();
+		            int screenX = winPos.x + width / 2;
+		            int screenY = winPos.y + height / 2;
+		            robot.mouseMove(screenX, screenY);
+		        }
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+		}*/
+
+
 	}
 
 	// probably shouldn't have to edit this method
@@ -167,7 +185,7 @@ public class BakeOff1 extends PApplet {
 		  if (i == targetId) {
 			    // Flashing cyan by modulating alpha
 			    int a = flashLevel();
-			    fill(0, 255, 255, a);
+			    fill(255, 0, 0, a);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
 			  } else {
 			    fill(200);
@@ -200,10 +218,11 @@ public class BakeOff1 extends PApplet {
 	}
 
 	public void keyPressed() {
-		// can use the keyboard if you wish
-		// https://processing.org/reference/keyTyped_.html
-		// https://processing.org/reference/keyCode.html
+	    if (key == ' ' || keyEvent.isShiftDown()) {
+	        mousePressed();
+	    }
 	}
+
 	
 	// --- helpers for centers and arrow drawing ---
 	private float centerX(Rectangle r) { return r.x + r.width  * 0.5f; }
@@ -262,7 +281,7 @@ public class BakeOff1 extends PApplet {
 	
 	/** Returns a pulsing value between flashMin and flashMax based on time. */
 	private int flashLevel() {
-	  float t = millis() / 1000.0f;                // seconds
+	  float t = millis() / 2000.0f;                // seconds
 	  float phase = (sin(TWO_PI * flashHz * t) + 1f) * 0.5f;  // 0..1
 	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
 	}
