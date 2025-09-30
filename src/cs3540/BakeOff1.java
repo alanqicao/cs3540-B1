@@ -165,7 +165,7 @@ public class BakeOff1 extends PApplet {
 			    int a = flashLevel();
 			    fill(255, 0, 0, a);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
-			    drawSweepBand(bounds);
+			    drawInnerMarquee(bounds);
 			  } else {
 			    fill(200);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -248,32 +248,64 @@ public class BakeOff1 extends PApplet {
 	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
 	}
 	
-	private void drawSweepBand(Rectangle r) {
+	private void drawInnerMarquee(Rectangle r) {
+		  // Tunables
+		  float inset = 2f;      // keep all drawing this many px inside the cell
+		  float dash  = 6f;
+		  float gap   = 6f;
+		  float th    = 3f;      // dash thickness
+
+		  // Compute an inner box we may draw in
+		  float x0 = r.x + inset;
+		  float y0 = r.y + inset;
+		  float x1 = r.x + r.width  - inset;   // exclusive max
+		  float y1 = r.y + r.height - inset;   // exclusive max
+
+		  // Animation offset
+		  float cycle = dash + gap;
+		  float offs = (millis() / 100f) % cycle;
+
 		  pushStyle();
 		  noStroke();
+		  fill(255, 255, 0, 220);  // bright yellow
 
-		  // time → position 0..1 across the cell (left→right)
-		  float period = 0.9f;
-		  float u = ( (millis()/1000f) % period ) / period;
-
-		  // band width as fraction of cell width, and a soft alpha
-		  float fracW = 0.32f;                     // ~1/3 of cell
-		  float bandW = r.width * fracW;
-		  float cx = r.x + u * r.width;            // center x of band
-		  float x0 = constrain(cx - bandW*0.5f, r.x, r.x + r.width);
-		  float x1 = constrain(cx + bandW*0.5f, r.x, r.x + r.width);
-
-		  // three passes to fake a soft edge, all fully inside the rect
-		  for (int i = 0; i < 3; i++) {
-		    float shrink = i * 3;                   // small inset per pass
-		    int a = (i==0) ? 120 : (i==1 ? 70 : 35);
-		    fill(0, 255, 180, a);
-		    rect(x0 + shrink, r.y + 2 + shrink,
-		         max(0, (x1 - x0) - 2*shrink),
-		         r.height - 4 - 2*shrink);
+		  // ---- TOP and BOTTOM (left->right) ----
+		  // TOP y spans [y0, y0+th]
+		  for (float x = x0 - offs; x < x1; x += cycle) {
+		    float sx = max(x, x0);
+		    float ex = min(x + dash, x1);
+		    float w  = ex - sx;
+		    if (w > 0) rect(sx, y0, w, th);
 		  }
+		  // BOTTOM y spans [y1-th, y1]
+		  float by = y1 - th;
+		  for (float x = x0 - offs; x < x1; x += cycle) {
+		    float sx = max(x, x0);
+		    float ex = min(x + dash, x1);
+		    float w  = ex - sx;
+		    if (w > 0) rect(sx, by, w, th);
+		  }
+
+		  // ---- LEFT and RIGHT (top->bottom) ----
+		  // LEFT x spans [x0, x0+th]
+		  for (float y = y0 - offs; y < y1; y += cycle) {
+		    float sy = max(y, y0);
+		    float ey = min(y + dash, y1);
+		    float h  = ey - sy;
+		    if (h > 0) rect(x0, sy, th, h);
+		  }
+		  // RIGHT x spans [x1-th, x1]
+		  float rx = x1 - th;
+		  for (float y = y0 - offs; y < y1; y += cycle) {
+		    float sy = max(y, y0);
+		    float ey = min(y + dash, y1);
+		    float h  = ey - sy;
+		    if (h > 0) rect(rx, sy, th, h);
+		  }
+
 		  popStyle();
 		}
+
 
 
 }
