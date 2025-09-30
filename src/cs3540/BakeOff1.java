@@ -102,7 +102,7 @@ public class BakeOff1 extends PApplet {
 		for (int i = 0; i < 16; i++)// for all button
 			drawButton(i); // draw button
 
-		fill(255, 0, 0, 200); // set fill color to translucent red
+		fill(0, 0,255, 200); // set fill color to translucent red
 		ellipse(mouseX, mouseY, 20, 20); // draw user cursor as a circle with a diameter of 20
 
 	}
