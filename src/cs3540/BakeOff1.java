@@ -177,7 +177,7 @@ public class BakeOff1 extends PApplet {
 		  if (i == targetId) {
 			    // Flashing cyan by modulating alpha
 			    int a = flashLevel();
-			    fill(0, 255, 255, a);
+			    fill(255,0,0,a);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
 			  } else {
 			    fill(200);
