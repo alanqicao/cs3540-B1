@@ -137,28 +137,6 @@ public class BakeOff1 extends PApplet {
 
 		trialNum++; // Increment trial number
 
-		// in this example design, I move the cursor back to the middle after each click
-		// Note. When running from eclipse the robot class affects the whole screen not
-		// just the GUI, so the mouse may move outside of the GUI.
-		// robot.mouseMove(width/2, (height)/2); //on click, move cursor to roughly
-		// center of window!
-		/*if (robot != null) {
-		    try {
-		        // Get the window that contains the Processing canvas
-		        java.awt.Component comp = (java.awt.Component) surface.getNative();
-		        java.awt.Window window = javax.swing.SwingUtilities.getWindowAncestor(comp);
-
-		        if (window != null) {
-		            java.awt.Point winPos = window.getLocationOnScreen();
-		            int screenX = winPos.x + width / 2;
-		            int screenY = winPos.y + height / 2;
-		            robot.mouseMove(screenX, screenY);
-		        }
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		    }
-		}*/
-
 
 	}
 
@@ -187,6 +165,7 @@ public class BakeOff1 extends PApplet {
 			    int a = flashLevel();
 			    fill(255, 0, 0, a);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
+			    drawInnerPulse(bounds);
 			  } else {
 			    fill(200);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -195,7 +174,6 @@ public class BakeOff1 extends PApplet {
 		  // If this is the NEXT target, overlay a purple bar
 		  if (i == nextId) {
 		    // draw a bar to indicate "next"
-		    drawBarInCell(bounds, 180, 0, 255, 230); // purple bar
 		  }
 
 		  // Draw arrows on non-current cells pointing toward the current target
@@ -262,22 +240,6 @@ public class BakeOff1 extends PApplet {
 	  popStyle();
 	}  
 	
-	/** Draw a horizontal bar centered inside the cell. */
-	private void drawBarInCell(Rectangle cell, int r, int g, int b, int a) {
-	  float cx = centerX(cell);
-	  float cy = centerY(cell);
-
-	  float w = cell.width * 0.75f;   // bar width as % of cell
-	  float h = cell.height * 0.35f;  // bar height as % of cell
-	  float x = cx - w * 0.5f;
-	  float y = cy - h * 0.5f;
-
-	  pushStyle();
-	  noStroke();
-	  fill(r, g, b, a);
-	  rect(x, y, w, h, h * 0.25f); // rounded bar looks nice
-	  popStyle();
-	}
 	
 	/** Returns a pulsing value between flashMin and flashMax based on time. */
 	private int flashLevel() {
@@ -285,4 +247,24 @@ public class BakeOff1 extends PApplet {
 	  float phase = (sin(TWO_PI * flashHz * t) + 1f) * 0.5f;  // 0..1
 	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
 	}
+	
+	private void drawInnerPulse(Rectangle r) {
+		  pushStyle();
+		  noStroke();
+
+		  float t = millis()/1000f;
+		  float phase = (sin(TWO_PI * 1.2f * t) + 1f) * 0.5f;     // 0..1
+
+		  // 4 inset layers, biggest alpha on innermost
+		  for (int k = 0; k < 4; k++) {
+		    float inset = map(k, 0, 3, 2, 10);                    // px inset stays inside
+		    int   a     = (int) (map(k, 0, 3, 110, 20) * (0.6f+0.4f*phase));
+		    fill(0, 255, 255, a);                                  // cyan-ish
+		    rect(r.x + inset, r.y + inset,
+		         r.width - 2*inset, r.height - 2*inset);
+		  }
+		  popStyle();
+		}
+
+
 }
