@@ -112,7 +112,7 @@ public class BakeOff1 extends PApplet {
 		for (int i = 0; i < 16; i++)// for all button
 			drawButton(i); // draw button
 
-		fill(255, 0, 0, 200); // set fill color to translucent red
+		fill(57, 255, 20, 255); // set fill color to translucent red
 		ellipse(mouseX, mouseY, 20, 20); // draw user cursor as a circle with a diameter of 20
 
 	}
@@ -176,9 +176,10 @@ public class BakeOff1 extends PApplet {
 
 		  if (i == targetId) {
 			    // Flashing cyan by modulating alpha
-			    int a = flashLevel();
-			    fill(255,0,0,a);
+			   // int a = flashLevel();
+			    fill(255,0,0,100);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
+			    drawInnerPulse(bounds);
 			  } else {
 			    fill(200);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -213,9 +214,9 @@ public class BakeOff1 extends PApplet {
 	}
 
 	public void keyPressed() {
-		// can use the keyboard if you wish
-		// https://processing.org/reference/keyTyped_.html
-		// https://processing.org/reference/keyCode.html
+	    if (key == ' ' || keyEvent.isShiftDown()) {
+	        mousePressed();
+	    }
 	}
 	
 	// --- helpers for centers and arrow drawing ---
@@ -224,22 +225,13 @@ public class BakeOff1 extends PApplet {
 
 
 	
-	/** Draw a horizontal bar centered inside the cell. */
-
-	
-	/** Returns a pulsing value between flashMin and flashMax based on time. */
-	private int flashLevel() {
-	  float t = millis() / 1000.0f;                // seconds
-	  float phase = (sin(TWO_PI * flashHz * t) + 1f) * 0.5f;  // 0..1
-	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
-	}
 
 	/** Arrow with a straight centerline and an animated thickness front sweeping tail -> tip. */
 	private void drawSweepArrowInCell(Rectangle cell, float angle) {
 	  float cx = centerX(cell);
 	  float cy = centerY(cell);
 
-	  // geometry proportions (same vibe as your straight arrow)
+	  // geometry proportions
 	  float halfShaft = cell.width * 0.18f;            // half length of shaft
 	  float headLen   = cell.width * 0.09f;            // arrow head length
 	  float tailX     = -halfShaft;
@@ -304,7 +296,23 @@ public class BakeOff1 extends PApplet {
 	  popStyle();
 	}
 
+	private void drawInnerPulse(Rectangle r) {
+		  pushStyle();
+		  noStroke();
 
+		  float t = millis()/1000f;
+		  float phase = (sin(TWO_PI * 2.4f * t) + 1f) * 0.5f;     // 0..1
+		  
+		  // 4 inset layers, biggest alpha on innermost
+		  for (int k = 0; k < 4; k++) {
+		    float inset = map(k, 0, 3, 0, 8);                    // px inset stays inside
+		    int   a     = (int) (map(k, 0, 3, 110, 20) * (0.6f+0.4f*phase));
+		    fill(255, 0, 0, a);                                  // cyan-ish
+		    rect(r.x + inset, r.y + inset,
+		         r.width - 2*inset, r.height - 2*inset);
+		  }
+		  popStyle();
+		}
 
 
 }
