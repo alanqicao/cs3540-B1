@@ -153,29 +153,6 @@ public class BakeOff1 extends PApplet {
 
 		trialNum++; // Increment trial number
 
-		// in this example design, I move the cursor back to the middle after each click
-		// Note. When running from eclipse the robot class affects the whole screen not
-		// just the GUI, so the mouse may move outside of the GUI.
-		// robot.mouseMove(width/2, (height)/2); //on click, move cursor to roughly
-		// center of window!
-		/*if (robot != null) {
-		    try {
-		        // Get the window that contains the Processing canvas
-		        java.awt.Component comp = (java.awt.Component) surface.getNative();
-		        java.awt.Window window = javax.swing.SwingUtilities.getWindowAncestor(comp);
-
-		        if (window != null) {
-		            java.awt.Point winPos = window.getLocationOnScreen();
-		            int screenX = winPos.x + width / 2;
-		            int screenY = winPos.y + height / 2;
-		            robot.mouseMove(screenX, screenY);
-		        }
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		    }
-		}*/
-
-
 	}
 
 	// probably shouldn't have to edit this method
@@ -200,8 +177,6 @@ public class BakeOff1 extends PApplet {
 
 		  if (i == targetId) {
 			  	currentTarget = bounds;
-			    // Flashing cyan by modulating alpha
-			   // int a = flashLevel();
 			    fill(255,0,0,100);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
 			    drawInnerPulse(bounds);
@@ -227,7 +202,6 @@ public class BakeOff1 extends PApplet {
 		    float dx = centerX(targetBounds) - centerX(bounds);
 		    float dy = centerY(targetBounds) - centerY(bounds);
 		    float angle = atan2(dy, dx);
-		 // in drawButton(int i)
 		    drawSweepArrowInCell(bounds, angle);
 
 
@@ -299,14 +273,11 @@ public class BakeOff1 extends PApplet {
 	    float x = lerp(tailX, tipBaseX, u);
 	    xs[i] = x;
 
-	    // thickness at this point: base .. max with a soft front at prog
-	    // Front affects the span [prog - ramp, prog]; before = base, after = max
 	    float s = smooth.apply((u - (prog - ramp)) / ramp);
 	    float thick = lerp(baseThick, maxThick, s);
 	    halfT[i] = thick * 0.2f;
 	  }
 
-	  // Draw the shaft as a clean QUAD_STRIP (no self-intersections, no wobble)
 	  beginShape(QUAD_STRIP);
 	  for (int i = 0; i <= S; i++) {
 	    vertex(xs[i], -halfT[i]); // upper edge
@@ -347,26 +318,19 @@ public class BakeOff1 extends PApplet {
 	  popStyle();
 	}
 	
-	/** Returns a pulsing value between flashMin and flashMax based on time. */
-	private int flashLevel() {
-	  float t = millis() / 2000.0f;                // seconds
-	  float phase = (sin(TWO_PI * flashHz * t) + 1f) * 0.5f;  // 0..1
-	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
-
-	}
 
 	private void drawInnerPulse(Rectangle r) {
 		  pushStyle();
 		  noStroke();
 
 		  float t = millis()/1000f;
-		  float phase = (sin(TWO_PI * 2.4f * t) + 1f) * 0.5f;     // 0..1
+		  float phase = (sin(TWO_PI * 2.4f * t) + 1f) * 0.5f;    
 		  
-		  // 4 inset layers, biggest alpha on innermost
+		  
 		  for (int k = 0; k < 4; k++) {
-		    float inset = map(k, 0, 3, 0, 8);                    // px inset stays inside
+		    float inset = map(k, 0, 3, 0, 8);                  
 		    int   a     = (int) (map(k, 0, 3, 110, 20) * (0.6f+0.4f*phase));
-		    fill(255, 0, 0, a);                                  // cyan-ish
+		    fill(255, 0, 0, a);                                 
 		    rect(r.x + inset, r.y + inset,
 		         r.width - 2*inset, r.height - 2*inset);
 		  }
