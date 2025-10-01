@@ -23,6 +23,8 @@ public class BakeOff1 extends PApplet {
 	int trialNum = 0; // the current trial number (indexes into trials array above)
 	int startTime = 0; // time starts when the first click is captured
 	int finishTime = 0; // records the time of the final click
+	int lastHit = 1;
+	Rectangle currentTarget;
 	int hits = 0; // number of successful clicks
 	int misses = 0; // number of missed clicks
 	Robot robot; // initialized in setup
@@ -104,11 +106,15 @@ public class BakeOff1 extends PApplet {
 
 		fill(255, 0, 0, 200); // set fill color to translucent red
 		ellipse(mouseX, mouseY, 20, 20); // draw user cursor as a circle with a diameter of 20
-
+		float dt = (lastHit - millis());
+		rectMode(CENTER);
+		rect(currentTarget.x + (currentTarget.width/2),currentTarget.y + (currentTarget.height/2),currentTarget.height * 75/dt, currentTarget.width * 75/dt);
+		rectMode(CORNER);
 	}
 
 	public void mousePressed() // test to see if hit was in target!
 	{
+		lastHit = millis();
 		if (trialNum >= trials.size()) // check if task is done
 			return;
 
@@ -183,19 +189,26 @@ public class BakeOff1 extends PApplet {
 		  Rectangle targetBounds = getButtonLocation(targetId);
 
 		  if (i == targetId) {
+			  	currentTarget = bounds;
 			    // Flashing cyan by modulating alpha
 			    int a = flashLevel();
 			    fill(255, 0, 0, a);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
 			  } else {
+				  
 			    fill(200);
+			    
+			    //Fill in next target slightly
+			    if (i == nextId)
+			    	fill (50, 50, 75);
+			    
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
 			  }
 
 		  // If this is the NEXT target, overlay a purple bar
 		  if (i == nextId) {
 		    // draw a bar to indicate "next"
-		    drawBarInCell(bounds, 180, 0, 255, 230); // purple bar
+		    //drawBarInCell(bounds, 180, 0, 255, 230); // purple bar
 		  }
 
 		  // Draw arrows on non-current cells pointing toward the current target
