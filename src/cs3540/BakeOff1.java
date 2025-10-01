@@ -219,7 +219,7 @@ public class BakeOff1 extends PApplet {
 		  // If this is the NEXT target, overlay a purple bar
 		  if (i == nextId) {
 		    // draw a bar to indicate "next"
-		   // drawBarInCell(bounds, 180, 0, 255, 230); // purple bar
+		   drawBarInCell(bounds, 180, 0, 255, 230); // purple bar
 		  }
 
 		  // Draw arrows on non-current cells pointing toward the current target
@@ -326,6 +326,33 @@ public class BakeOff1 extends PApplet {
 
 	  popMatrix();
 	  popStyle();
+
+
+	}  
+	
+	/** Draw a horizontal bar centered inside the cell. */
+	private void drawBarInCell(Rectangle cell, int r, int g, int b, int a) {
+	  float cx = centerX(cell);
+	  float cy = centerY(cell);
+
+	  float w = cell.width * 0.75f;   // bar width as % of cell
+	  float h = cell.height * 0.35f;  // bar height as % of cell
+	  float x = cx - w * 0.5f;
+	  float y = cy - h * 0.5f;
+
+	  pushStyle();
+	  noStroke();
+	  fill(r, g, b, a);
+	  rect(x, y, w, h, h * 0.25f); // rounded bar looks nice
+	  popStyle();
+	}
+	
+	/** Returns a pulsing value between flashMin and flashMax based on time. */
+	private int flashLevel() {
+	  float t = millis() / 2000.0f;                // seconds
+	  float phase = (sin(TWO_PI * flashHz * t) + 1f) * 0.5f;  // 0..1
+	  return (int) lerp(flashMin, flashMax, phase);           // flashMin..flashMax
+
 	}
 
 	private void drawInnerPulse(Rectangle r) {
