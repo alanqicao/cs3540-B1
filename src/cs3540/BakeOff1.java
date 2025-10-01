@@ -23,6 +23,8 @@ public class BakeOff1 extends PApplet {
 	int trialNum = 0; // the current trial number (indexes into trials array above)
 	int startTime = 0; // time starts when the first click is captured
 	int finishTime = 0; // records the time of the final click
+	int lastHit = 1;
+	Rectangle currentTarget;
 	int hits = 0; // number of successful clicks
 	int misses = 0; // number of missed clicks
 	Robot robot; // initialized in setup
@@ -114,11 +116,15 @@ public class BakeOff1 extends PApplet {
 
 		fill(57, 255, 20, 255); // set fill color to translucent red
 		ellipse(mouseX, mouseY, 20, 20); // draw user cursor as a circle with a diameter of 20
-
+		float dt = (lastHit - millis());
+		rectMode(CENTER);
+		rect(currentTarget.x + (currentTarget.width/2),currentTarget.y + (currentTarget.height/2),currentTarget.height * 75/dt, currentTarget.width * 75/dt);
+		rectMode(CORNER);
 	}
 
 	public void mousePressed() // test to see if hit was in target!
 	{
+		lastHit = millis();
 		if (trialNum >= trials.size()) // check if task is done
 			return;
 
@@ -152,6 +158,24 @@ public class BakeOff1 extends PApplet {
 		// just the GUI, so the mouse may move outside of the GUI.
 		// robot.mouseMove(width/2, (height)/2); //on click, move cursor to roughly
 		// center of window!
+		/*if (robot != null) {
+		    try {
+		        // Get the window that contains the Processing canvas
+		        java.awt.Component comp = (java.awt.Component) surface.getNative();
+		        java.awt.Window window = javax.swing.SwingUtilities.getWindowAncestor(comp);
+
+		        if (window != null) {
+		            java.awt.Point winPos = window.getLocationOnScreen();
+		            int screenX = winPos.x + width / 2;
+		            int screenY = winPos.y + height / 2;
+		            robot.mouseMove(screenX, screenY);
+		        }
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+		}*/
+
+
 	}
 
 	// probably shouldn't have to edit this method
@@ -175,13 +199,20 @@ public class BakeOff1 extends PApplet {
 		  Rectangle targetBounds = getButtonLocation(targetId);
 
 		  if (i == targetId) {
+			  	currentTarget = bounds;
 			    // Flashing cyan by modulating alpha
 			   // int a = flashLevel();
 			    fill(255,0,0,100);
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
 			    drawInnerPulse(bounds);
 			  } else {
+				  
 			    fill(200);
+			    
+			    //Fill in next target slightly
+			    if (i == nextId)
+			    	fill (50, 50, 75);
+			    
 			    rect(bounds.x, bounds.y, bounds.width, bounds.height);
 			  }
 
@@ -218,6 +249,7 @@ public class BakeOff1 extends PApplet {
 	        mousePressed();
 	    }
 	}
+
 	
 	// --- helpers for centers and arrow drawing ---
 	private float centerX(Rectangle r) { return r.x + r.width  * 0.5f; }
