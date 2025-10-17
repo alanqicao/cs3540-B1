@@ -18,7 +18,7 @@ public class BakeOff1 extends PApplet {
 
 	int margin = 200; // set the margin around the squares
 	final int padding = 50; // padding between buttons and also their width/height
-	final int buttonSize = 40; // padding between buttons and also their width/height
+	final int buttonSize = 50; // padding between buttons and also their width/height
 	ArrayList<Integer> trials = new ArrayList<Integer>(); // contains the order of buttons that activate in the test
 	int trialNum = 0; // the current trial number (indexes into trials array above)
 	int startTime = 0; // time starts when the first click is captured
@@ -40,11 +40,14 @@ public class BakeOff1 extends PApplet {
 	float sweepSeconds  = 0.2f;   // time for front to go tail -> tip
 	float frontFeather  = 0.25f;  // 0..1 of shaft length that is the soft ramp width
 	int   arrowGrayFill = 60;     // color
+	
+	int cursorStartX = -1, cursorStartY = -1; // cursor at start of the current round
+	int roundStartMillis = 0;                  // time when the current round started
 
 
 
 
-	int numRepeats = 1; // sets the number of times each button repeats in the test
+	int numRepeats = 10; // sets the number of times each button repeats in the test
 
 	/**
 	 * https://processing.org/reference/settings_.html#:~:text=The%20settings()%20method%20runs,commands%20in%20the%20Processing%20API.
@@ -84,6 +87,12 @@ public class BakeOff1 extends PApplet {
 		System.out.println("trial order: " + trials); // print out order for reference
 
 		surface.setLocation(0, 0);// put window in top left corner of screen (doesn't always work)
+		
+		
+		cursorStartX = mouseX;
+		cursorStartY = mouseY;
+		roundStartMillis = millis();
+
 	}
 
 	public void draw() {
@@ -135,23 +144,43 @@ public class BakeOff1 extends PApplet {
 		{
 			finishTime = millis();
 			// write to terminal some output:
-			System.out.println("we're all done!");
+			//System.out.println("we're all done!");
 		}
 
 		Rectangle bounds = getButtonLocation(trials.get(trialNum));
-
-		// check to see if cursor was inside button
-		if ((mouseX > bounds.x && mouseX < bounds.x + bounds.width)
-				&& (mouseY > bounds.y && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
-		{
-			System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
-			hits++;
-		} else {
-			System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
-			misses++;
-		}
+		
+		int targetCenterX = bounds.x + bounds.width / 2;
+		int targetCenterY = bounds.y + bounds.height / 2;
+		
+		// Time since round started
+		int timeTaken = millis() - roundStartMillis;
+		double timeTakenSec = timeTaken / 1000.0;
+		
+		 // Hit test
+		  boolean hit = (mouseX > bounds.x && mouseX < bounds.x + bounds.width) &&
+		                (mouseY > bounds.y && mouseY < bounds.y + bounds.height);
+		  // Print one CSV line per round:
+		  // trialNum, "2", CursorStartX, CursorStartY, TargetCenterX, TargetCenterY, buttonSize, TimeTaken(ms), Hit(1/0)
+		  System.out.println(
+		      trialNum + "," +
+		      "2" + "," +
+		      cursorStartX + "," + cursorStartY + "," +
+		      targetCenterX + "," + targetCenterY + "," +
+		      buttonSize + "," +
+		      timeTakenSec + "," +
+		      (hit ? "1" : "0")
+		  ); 
+		  
+		  if (hit) hits++; else misses++;
+		
 
 		trialNum++; // Increment trial number
+		  // Setup cursor start for the NEXT round (if any)
+		  if (trialNum < trials.size()) {
+		    cursorStartX = mouseX;           // where the cursor is at the start of the new round
+		    cursorStartY = mouseY;
+		    roundStartMillis = millis();
+		  }
 
 	}
 
